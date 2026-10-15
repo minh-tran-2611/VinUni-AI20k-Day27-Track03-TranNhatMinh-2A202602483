@@ -247,8 +247,10 @@ async def node_commit(state):
     t0 = time.monotonic()
     # Two paths converge here:
     #   1. human_approval → commit (only post if approved)
-    #   2. escalate → synthesize → commit (always post the refined review)
-    if state.get("escalation_answers") or state.get("human_choice") == "approve":
+    #   2. escalate → synthesize → commit (always post the refined review,
+    #      unless a final confirm step — the Streamlit UI adds one — was declined)
+    choice = state.get("human_choice")
+    if choice == "approve" or (choice is None and state.get("escalation_answers")):
         action = _post(state)
     else:
         console.print(f"  [yellow]·[/yellow] skipping comment (choice={state.get('human_choice')})")
